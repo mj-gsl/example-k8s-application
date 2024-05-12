@@ -21,7 +21,6 @@ jobs:
       - name: Build Angular application
         run: |
           cd frontend
-          npm install -g @angular/cli
           npm install
           ng build
       - name: Archive production artifacts
