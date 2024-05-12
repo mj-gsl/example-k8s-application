@@ -49,16 +49,28 @@ jobs:
         run: |
           aws s3 sync dist/frontend/browser/ s3://example-app-mj/ --delete
 
-  deploy-backend:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up SSH key
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Build the project
+        run: npm run build
+        working-directory: ./backend
+
+      - name: List output for debugging
+        run: ls -alh ./backend/dist
+
+      - name: Deploy to EC2
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY_EXAMPLE_KEY1 }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_IP }} >> ~/.ssh/known_hosts
-      - name: Transfer files and deploy
-        run: |
-          scp -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend
-          ssh ubuntu@${{ secrets.EC2_IP }} 'bash -s' < deploy_script.sh
+          scp -r ./backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend
