@@ -69,6 +69,7 @@ jobs:
           aws-region: eu-central-1
       - name: Transfer Backend Build
         run: |
-          scp -o StrictHostKeyChecking=no -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend
+          ssh-keyscan -H ${{ secrets.EC2_IP }} >> ~/.ssh/known_hosts
+          scp -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend  
       - name: Restart Backend Service
         run: ssh ubuntu@${{ secrets.EC2_IP }} 'pm2 reload backend-app'
