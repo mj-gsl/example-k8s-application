@@ -50,16 +50,16 @@ jobs:
           aws s3 sync dist/frontend/browser/ s3://example-app-mj/ --delete
 
   deploy-backend:
-    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Setup SSH Keys
+      - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY_EXAMPLE_KEY1 }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan ${{ secrets.EC2_IP }} >> ~/.ssh/known_hosts
-      - name: Transfer Backend and Deploy
+          ssh-keyscan -H ${{ secrets.EC2_IP }} >> ~/.ssh/known_hosts
+
+      - name: Transfer files and deploy
         run: |
           scp -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend
-          ssh ubuntu@${{ secrets.EC2_IP }} "sudo systemctl restart backend-service"
+          ssh ubuntu@${{ secrets.EC2_IP }} 'bash -s' < deploy_script.sh
