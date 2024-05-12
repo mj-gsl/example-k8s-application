@@ -53,7 +53,7 @@ jobs:
           aws-region: eu-central-1
 
       - name: Deploy to S3
-        run: aws s3 sync ./browser/ s3://example-app-mj/ --delete
+        run: aws s3 sync ./frontend/dist/browser/ s3://example-app-mj/ --delete
         working-directory: ./dist/frontend
 
   deploy-backend:
