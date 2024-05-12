@@ -2,6 +2,8 @@ name: CI/CD Pipeline for K8s Example App
 
 on:
   push:
+    branches:
+      - main
     tags:
       - '*'
 
