@@ -65,5 +65,5 @@ jobs:
       - name: Deploy backend on EC2
         run: |
           echo "Deploy backend script here (e.g., copy files, restart services)"
-          aws ec2 describe-instances --instance-ids i-088fda05fd9d33bf1
+          aws ec2 describe-instances --instance-ids i-0249be2bfecfde972
 
