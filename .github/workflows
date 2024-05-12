@@ -1,0 +1,67 @@
+name: CI/CD Pipeline for K8s Example App
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: node:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build Angular application
+        run: |
+          cd frontend
+          npm install -g @angular/cli
+          npm install
+          ng build --configuration production
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: frontend-build
+          path: frontend/dist/frontend/*
+
+  deploy-frontend:
+    needs: build
+    runs-on: ubuntu-latest
+    container: 
+      image: amazon/aws-cli
+      options: --entrypoint /bin/sh
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: frontend-build
+          path: dist/frontend
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: eu-central-1
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/frontend/browser/ s3://example-app-mj/ --delete
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    container: python:latest
+    steps:
+      - name: Install AWS CLI
+        run: pip install awscli
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: eu-central-1
+      - name: Deploy backend on EC2
+        run: |
+          echo "Deploy backend script here (e.g., copy files, restart services)"
+          aws ec2 describe-instances --instance-ids i-088fda05fd9d33bf1
+
