@@ -10,9 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,18 +23,17 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Install Angular CLI locally
-        run: npm install @angular/cli
+        working-directory: ./frontend
 
       - name: Build Angular application
         run: npx ng build --configuration production
+        working-directory: ./frontend
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: dist/frontend/*
+          path: frontend/dist/frontend/*
 
   deploy-frontend:
     needs: build
@@ -47,7 +43,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: frontend-build
-          path: dist/frontend
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -58,9 +53,11 @@ jobs:
           aws-region: eu-central-1
 
       - name: Deploy to S3
-        run: aws s3 sync dist/frontend/browser/ s3://example-app-mj/ --delete
+        run: aws s3 sync ./browser/ s3://example-app-mj/ --delete
+        working-directory: ./dist/frontend
 
   deploy-backend:
+    needs: [deploy-frontend]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Node.js
