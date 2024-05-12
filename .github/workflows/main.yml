@@ -58,7 +58,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY_EXAMPLE_KEY1 }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_IP }} >> ~/.ssh/known_hosts
-
       - name: Transfer files and deploy
         run: |
           scp -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend
