@@ -23,7 +23,7 @@ jobs:
           cd frontend
           npm install -g @angular/cli
           npm install
-          ng build --configuration production
+          ng build
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
