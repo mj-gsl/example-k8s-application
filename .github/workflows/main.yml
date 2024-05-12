@@ -10,10 +10,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: node:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
       - name: Build Angular application
         run: |
           cd frontend
@@ -21,7 +24,7 @@ jobs:
           npm install
           ng build --configuration production
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/dist/frontend/*
@@ -29,17 +32,14 @@ jobs:
   deploy-frontend:
     needs: build
     runs-on: ubuntu-latest
-    container: 
-      image: amazon/aws-cli
-      options: --entrypoint /bin/sh
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: frontend-build
           path: dist/frontend
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -51,12 +51,15 @@ jobs:
 
   deploy-backend:
     runs-on: ubuntu-latest
-    container: python:latest
     steps:
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
       - name: Install AWS CLI
         run: pip install awscli
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
