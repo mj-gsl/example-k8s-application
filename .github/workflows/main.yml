@@ -68,6 +68,6 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
       - name: Transfer Backend Build
-        run: scp -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/path/to/backend
+        run: scp -r backend/dist ubuntu@${{ secrets.EC2_IP }}:/home/ubuntu/backend/backend
       - name: Restart Backend Service
         run: ssh ubuntu@${{ secrets.EC2_IP }} 'pm2 reload backend-app'
