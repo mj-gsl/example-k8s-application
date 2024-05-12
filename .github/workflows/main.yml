@@ -10,27 +10,34 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.1.0'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Angular CLI locally
+        run: npm install @angular/cli
+
       - name: Build Angular application
-        run: |
-          cd frontend
-          npm install @angular/cli
-          ng build
+        run: npx ng build --configuration production
+
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
-          path: frontend/dist/frontend/*
+          path: dist/frontend/*
 
   deploy-frontend:
     needs: build
@@ -41,6 +48,7 @@ jobs:
         with:
           name: frontend-build
           path: dist/frontend
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -48,9 +56,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
+
       - name: Deploy to S3
-        run: |
-          aws s3 sync dist/frontend/browser/ s3://example-app-mj/ --delete
+        run: aws s3 sync dist/frontend/browser/ s3://example-app-mj/ --delete
 
   deploy-backend:
     runs-on: ubuntu-latest
@@ -60,10 +68,10 @@ jobs:
         with:
           node-version: '22.1.0'
           cache: 'npm'
+
       - name: Install AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
+        run: sudo apt-get update && sudo apt-get install -y awscli
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -71,7 +79,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
+
       - name: Deploy backend on EC2
-        run: |
-          echo "Deploy backend script here (e.g., copy files, restart services)"
-          aws ec2 describe-instances --instance-ids i-0249be2bfecfde972
+        run: aws ec2 describe-instances --instance-ids i-0249be2bfecfde972
